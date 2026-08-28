@@ -7,7 +7,7 @@ This repository is a Cursor Cloud Agent wrapper for Axelrod AI. It does not cont
 | Path | Role |
 | --- | --- |
 | `.cursor/environment.json` | Repo-managed Cloud Agent environment. Highest precedence over personal or team dashboard environments. |
-| `.cursor/install-axelrod-ai.sh` | Idempotent install script. Clones `Axelrod-AI/core` into `./core` with `gh repo clone` using `GH_TOKEN`. |
+| `.cursor/install-axelrod-ai.sh` | Idempotent install script. Clones `Axelrod-AI/core` into `./core` over git HTTPS using the `GH_TOKEN` secret (collaborator PAT). Does not use `gh repo clone`. |
 | `core/` | Checkout of `Axelrod-AI/core` created at install time. Do not commit it. |
 | `README.md` | Human setup and local-run notes. |
 
@@ -18,7 +18,8 @@ Do not add application code here unless the task is to extend the wrapper itself
 - The environment is repository-managed. Do not create a competing dashboard environment for this repo.
 - `install` is `bash .cursor/install-axelrod-ai.sh`. It must stay non-interactive, terminate, and succeed when run twice.
 - The default clone source is `Axelrod-AI/core`. Override with `AXELROD_CORE_REPO` only when a task says to.
-- `GH_TOKEN` must be present as an environment secret. Use it for git HTTPS. Never print, log, or commit the token. Never put it in a remote URL.
+- `GH_TOKEN` must be present as an environment secret. It must be a PAT for an account that is a collaborator on `Axelrod-AI/core` (org-admin / GitHub App installation is not required). Use it for git HTTPS. Never print, log, or commit the token. Never put it in a remote URL.
+- Do not clone `Axelrod-AI/core` with `gh repo clone`. Cloud Agent VMs authenticate git as the generated `cursor` GitHub App user, which cannot see that private repo when the launcher is only a collaborator. The install script isolates git from those `url.insteadOf` rewrites and uses `GH_TOKEN` via ASKPASS.
 - There is no `start` command and no `terminals` entry. Do not start a dummy web server.
 - After boot, confirm bootstrap by reading `.cursor/.axelrod-install-complete` or `$HOME/.axelrod-ai/install.stamp`, and by checking that `./core` is a git checkout.
 - Put durable toolchain work in the install script. Put task-specific commands in this file, not in `install`.
