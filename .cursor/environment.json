@@ -1,0 +1,4 @@
+{
+  "name": "Axelrod AI Cloud Agent",
+  "install": "bash .cursor/install-axelrod-ai.sh"
+}
