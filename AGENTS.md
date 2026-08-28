@@ -7,7 +7,7 @@ This repository is a Cursor Cloud Agent wrapper for Axelrod AI. It does not cont
 | Path | Role |
 | --- | --- |
 | `.cursor/environment.json` | Repo-managed Cloud Agent environment. Highest precedence over personal or team dashboard environments. |
-| `.cursor/install-axelrod-ai.sh` | Idempotent install script. Clones `Axelrod-AI/core` into `./core` using `GH_TOKEN`. |
+| `.cursor/install-axelrod-ai.sh` | Idempotent install script. Clones `Axelrod-AI/core` into `./core` with `gh repo clone` using `GH_TOKEN`. |
 | `core/` | Checkout of `Axelrod-AI/core` created at install time. Do not commit it. |
 | `README.md` | Human setup and local-run notes. |
 

@@ -2,7 +2,7 @@
 
 Thin repository that gives Cursor Cloud Agents a committed environment on [`zsolt-axelrod/dummy`](https://github.com/zsolt-axelrod/dummy).
 
-Launch a Cloud Agent against this repo (branch `main`) to pick up `.cursor/environment.json`. After checkout, `.cursor/install-axelrod-ai.sh` clones [`Axelrod-AI/core`](https://github.com/Axelrod-AI/core) into `./core` using `GH_TOKEN`.
+Launch a Cloud Agent against this repo (branch `main`) to pick up `.cursor/environment.json`. After checkout, `.cursor/install-axelrod-ai.sh` clones [`Axelrod-AI/core`](https://github.com/Axelrod-AI/core) into `./core` using `GH_TOKEN` (`gh repo clone`, with git HTTPS as fallback).
 
 ## Files
 

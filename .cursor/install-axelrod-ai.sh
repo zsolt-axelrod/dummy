@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Idempotent Cloud Agent bootstrap for the Axelrod AI wrapper repo.
 # Cursor runs this from the repository root during environment install / builds.
+#
+# Always clones (or fast-forwards) Axelrod-AI/core into ./core.
 set -euo pipefail
 set +x
 
@@ -39,7 +41,6 @@ require_token() {
 }
 
 # Authenticate git HTTPS with GH_TOKEN without putting the token on argv or in remotes.
-# GIT_ASKPASS reads GH_TOKEN from the environment and prints only to git.
 write_askpass() {
   local path="$1"
   cat >"$path" <<'ASKPASS'
@@ -63,12 +64,22 @@ git_github() {
   return "$rc"
 }
 
-clone_or_update_core() {
-  require_token
+# Prefer `gh` (uses GH_TOKEN from the environment). Fall back to git + ASKPASS.
+clone_core() {
+  log "cloning ${CORE_REPO} into ./core"
+  if command -v gh >/dev/null 2>&1; then
+    GH_TOKEN="${GH_TOKEN}" gh repo clone "${CORE_REPO}" "${CORE_DIR}"
+  else
+    git_github clone "$CORE_URL" "$CORE_DIR"
+  fi
+}
 
-  if [[ -d "${CORE_DIR}/.git" ]]; then
-    log "updating ./core from ${CORE_REPO}"
-    git -C "$CORE_DIR" remote set-url origin "$CORE_URL"
+update_core() {
+  log "updating ./core from ${CORE_REPO}"
+  git -C "$CORE_DIR" remote set-url origin "$CORE_URL"
+  if command -v gh >/dev/null 2>&1; then
+    gh repo sync "${CORE_DIR}"
+  else
     git_github -C "$CORE_DIR" fetch --prune origin
     git_github -C "$CORE_DIR" remote set-head origin -a >/dev/null
     local branch
@@ -78,12 +89,24 @@ clone_or_update_core() {
       branch="main"
     fi
     git_github -C "$CORE_DIR" checkout -B "$branch" "origin/${branch}"
+  fi
+}
+
+clone_or_update_core() {
+  require_token
+
+  if [[ -d "${CORE_DIR}/.git" ]]; then
+    update_core
   elif [[ -e "$CORE_DIR" ]]; then
     log "./core exists but is not a git clone; refusing to overwrite"
     exit 1
   else
-    log "cloning ${CORE_REPO} into ./core"
-    git_github clone --quiet "$CORE_URL" "$CORE_DIR"
+    clone_core
+  fi
+
+  if [[ ! -d "${CORE_DIR}/.git" ]]; then
+    log "clone failed: ${CORE_DIR} is not a git checkout"
+    exit 1
   fi
 
   # Ensure the stored remote never contains credentials.
